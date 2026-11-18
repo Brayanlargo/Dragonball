@@ -1,69 +1,63 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Alert } from
-'react-native';
+import { View, TextInput, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
+import { colores, formulario } from '../tema';
 
 export default function Login() {
-const [correo, setCorreo] = useState('');
-const [contrasena, setContrasena] = useState('');
-const navigation = useNavigation();
+  const [correo, setCorreo] = useState('');
+  const [contrasena, setContrasena] = useState('');
+  const navigation = useNavigation();
 
-const handleLogin = async () => {
-try {
-await signInWithEmailAndPassword(auth, correo, contrasena);
-} catch (error) {
-Alert.alert('Error al iniciar sesión', error.message);
+  const handleLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, correo, contrasena);
+    } catch (error) {
+      Alert.alert('Error al iniciar sesión', error.message);
+    }
+  };
+
+  return (
+    <View style={styles.pantalla}>
+      <View style={styles.caja}>
+        <View style={styles.esfera}>
+          <Text style={styles.estrella}>★</Text>
+        </View>
+        <Text style={styles.titulo}>Dragon Ball App</Text>
+        <Text style={styles.subtitulo}>Inicia sesión para continuar</Text>
+
+        <Text style={styles.etiqueta}>Correo electrónico</Text>
+        <TextInput
+          placeholder="goku@capsule.com"
+          placeholderTextColor={colores.textoSuave}
+          value={correo}
+          onChangeText={setCorreo}
+          style={styles.input}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
+
+        <Text style={styles.etiqueta}>Contraseña</Text>
+        <TextInput
+          placeholder="••••••••"
+          placeholderTextColor={colores.textoSuave}
+          value={contrasena}
+          onChangeText={setContrasena}
+          style={styles.input}
+          secureTextEntry
+        />
+
+        <TouchableOpacity style={styles.boton} onPress={handleLogin}>
+          <Text style={styles.botonTexto}>Ingresar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate('Registro')}>
+          <Text style={styles.enlace}>¿No tienes cuenta? Regístrate</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 }
-};
 
-return (
-<View style={styles.container}>
-<Text style={styles.titulo}>Iniciar Sesión</Text>
-
-<TextInput
-placeholder="Correo electrónico"
-value={correo}
-onChangeText={setCorreo}
-style={styles.input}
-autoCapitalize="none"
-keyboardType="email-address"
-/>
-<TextInput
-placeholder="Contraseña"
-value={contrasena}
-onChangeText={setContrasena}
-style={styles.input}
-secureTextEntry
-/>
-
-<Button title="Ingresar" onPress={handleLogin} />
-<View style={{ marginTop: 10 }}>
-<Button title="¿No tienes cuenta? Regístrate" onPress={() =>
-navigation.navigate('Registro')} />
-</View>
-</View>
-);
-}
-
-const styles = StyleSheet.create({
-container: {
-flex: 1,
-
-justifyContent: 'center',
-padding: 20,
-},
-titulo: {
-fontSize: 24,
-marginBottom: 20,
-textAlign: 'center'
-},
-input: {
-borderWidth: 1,
-borderColor: '#ccc',
-padding: 12,
-marginBottom: 12,
-borderRadius: 6,
-},
-});
+const styles = StyleSheet.create(formulario);

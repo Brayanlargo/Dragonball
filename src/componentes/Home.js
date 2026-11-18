@@ -1,72 +1,117 @@
+// src/componentes/Home.js
+// Lista todos los personajes de la Dragon Ball API con buscador por nombre
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, Image } from
-'react-native';
+import { StyleSheet, Text, View, ScrollView, Image, TextInput, ActivityIndicator } from 'react-native';
+import { colores } from '../tema';
 
 export default function Home() {
-const [data, setData] = useState([]);
+  const [data, setData] = useState([]);
+  const [busqueda, setBusqueda] = useState('');
+  const [cargando, setCargando] = useState(true);
 
-useEffect(() => {
-const obtenerDatos = async () => {
-const res = await
-fetch("https://pokeapi.co/api/v2/pokemon?limit=1025");
-const json = await res.json();
-setData(json.results);
-};
+  useEffect(() => {
+    const obtenerDatos = async () => {
+      try {
+        // El API viene paginado: recorremos "links.next" hasta traer todos
+        let url = 'https://dragonball-api.com/api/characters?limit=20';
+        let todos = [];
+        while (url) {
+          const res = await fetch(url);
+          const json = await res.json();
+          todos = [...todos, ...json.items];
+          url = json.links.next; // cuando no hay más páginas viene ""
+        }
+        setData(todos);
+      } catch (error) {
+        console.error('Error al obtener personajes:', error);
+      }
+      setCargando(false);
+    };
+    obtenerDatos();
+  }, []);
 
-obtenerDatos();
-}, []); // ← vacío si no usas tipoSeleccionado aún
+  const filtrados = data.filter((p) =>
+    p.name.toLowerCase().includes(busqueda.toLowerCase())
+  );
 
-return (
-<ScrollView>
-<View style={styles.lista}>
-{data.map((pokemon, index) => {
-const id = pokemon.url.split("/")[6];
-return (
-<View key={index} style={styles.item}>
+  if (cargando) {
+    return (
+      <View style={styles.centro}>
+        <ActivityIndicator size="large" color={colores.naranja} />
+        <Text style={styles.dato}>Cargando guerreros...</Text>
+      </View>
+    );
+  }
 
-<Text>{id} - {pokemon.name}</Text>
-<Image
-source={{
-uri:
-`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokem
-on/other/official-artwork/${id}.png`,
-}}
-style={styles.imagen}
-/>
-</View>
-);
-})}
-</View>
-</ScrollView>
-);
+  return (
+    <ScrollView style={styles.fondo} contentContainerStyle={styles.contenido}>
+      <Text style={styles.titulo}>Personajes de Dragon Ball</Text>
+      <Text style={styles.contador}>{filtrados.length} guerreros</Text>
+      <TextInput
+        style={styles.buscador}
+        placeholderTextColor={colores.textoSuave}
+        placeholder="🔍 Buscar personaje..."
+        value={busqueda}
+        onChangeText={setBusqueda}
+      />
+      <View style={styles.lista}>
+        {filtrados.map((personaje) => (
+          <View key={personaje.id} style={styles.item}>
+            <Image source={{ uri: personaje.image }} style={styles.imagen} />
+            <Text style={styles.nombre}>{personaje.id} - {personaje.name}</Text>
+            <Text style={styles.dato}>{personaje.race} · {personaje.gender}</Text>
+            <Text style={styles.dato}>Ki: {personaje.ki}</Text>
+            <Text style={styles.afiliacion}>{personaje.affiliation}</Text>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
-lista: {
-flexDirection: 'row',
-flexWrap: 'wrap',
-gap: 5,
-justifyContent: 'space-between',
-padding: 10,
-},
-item: {
-backgroundColor: 'aliceblue',
-width: '48%',
-padding: 10,
-alignItems: 'center',
-
-marginBottom: 10,
-},
-imagen: {
-width: 100,
-height: 100,
-resizeMode: 'contain',
-},
-buscador: {
-margin: 10,
-padding: 10,
-borderWidth: 1,
-borderColor: '#ccc',
-borderRadius: 10,
-},
+  fondo: { backgroundColor: colores.fondo },
+  contenido: { width: '100%', maxWidth: 1000, alignSelf: 'center', paddingBottom: 20 },
+  centro: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colores.fondo },
+  titulo: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginTop: 20, color: colores.amarillo },
+  contador: { textAlign: 'center', color: colores.textoSuave, marginTop: 4 },
+  buscador: {
+    margin: 15,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colores.borde,
+    borderRadius: 25,
+    backgroundColor: colores.tarjeta,
+    color: colores.texto,
+  },
+  lista: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 10,
+  },
+  item: {
+    backgroundColor: colores.tarjeta,
+    width: 165,
+    padding: 12,
+    alignItems: 'center',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colores.borde,
+  },
+  imagen: { width: 120, height: 170, resizeMode: 'contain' },
+  nombre: { fontWeight: 'bold', marginTop: 8, textAlign: 'center', color: colores.texto, fontSize: 15 },
+  dato: { fontSize: 12, color: colores.textoSuave, marginTop: 2 },
+  afiliacion: {
+    fontSize: 11,
+    color: colores.fondo,
+    backgroundColor: colores.naranja,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginTop: 6,
+    overflow: 'hidden',
+  },
 });
